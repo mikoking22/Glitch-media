@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { users } from './db/schema'
 import { cors } from 'hono/cors'
-import { eq, and } from 'drizzle-orm' // Pindahkan ke atas sini
+import { sql, and, eq } from 'drizzle-orm'
+import { users, posts } from './db/schema'
 
 type Bindings = {
   DB: D1Database
@@ -11,67 +11,60 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('*', cors({
-  origin: 'http://localhost:5173', 
-  allowMethods: ['POST', 'GET', 'OPTIONS'],
+  origin: 'http://localhost:5173',
+  allowMethods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'], // WAJIB ada DELETE & PUT
 }))
 
-// --- ROUTE LOGIN ---
+// --- LOGIN ---
 app.post('/login', async (c) => {
   const { username, password } = await c.req.json()
   const db = drizzle(c.env.DB)
-
-  const user = await db.select()
-    .from(users)
-    .where(
-      and(
-        eq(users.username, username),
-        eq(users.password, password)
-      )
-    )
-    .get()
-
-  if (user) {
-    return c.json({
-      message: 'Login Berhasil',
-      user: user
-    })
-  }
-
+  const user = await db.select().from(users)
+    .where(and(eq(users.username, username), eq(users.password, password))).get()
+  if (user) return c.json({ message: 'Login Berhasil', user })
   return c.json({ message: 'Username atau Password salah!' }, 401)
 })
 
-// --- ROUTE REGISTER ---
-app.post('/register', async (c) => {
-  try {
-    const { username, password } = await c.req.json()
-    const db = drizzle(c.env.DB)
-
-    const existingUser = await db.select().from(users).where(eq(users.username, username)).get()
-    
-    if (existingUser) {
-      return c.json({ message: 'Username sudah terdaftar!' }, 400)
-    }
-
-    await db.insert(users).values({
-      username,
-      password,
-    })
-
-    return c.json({ message: 'Registrasi Berhasil! Silakan Login.' }, 201)
-  } catch (err) {
-    return c.json({ message: 'Gagal daftar, coba lagi nanti.' }, 500)
-  }
-})
-
-// --- ROUTE TESTING (Bisa dihapus jika sudah tidak dipakai) ---
-app.get('/', (c) => {
-  return c.text('API Sosmed Berhasil Jalan!')
-})
-
-app.get('/users', async (c) => {
+// --- AMBIL POSTINGAN ---
+app.get('/posts', async (c) => {
   const db = drizzle(c.env.DB)
-  const result = await db.select().from(users).all()
-  return c.json(result)
+  const results = await db.select().from(posts)
+    .where(sql`created_at >= datetime('now', '-7 hour', '-1 day')`)
+    .orderBy(sql`created_at DESC`).all()
+  return c.json(results)
+})
+
+// --- KIRIM POSTINGAN ---
+app.post('/posts', async (c) => {
+  const { username, content } = await c.req.json()
+  const db = drizzle(c.env.DB)
+  await db.insert(posts).values({ username, content }).run()
+  return c.json({ message: 'Post sukses!' }, 201)
+})
+
+// --- EDIT POSTINGAN ---
+app.put('/posts/:id', async (c) => {
+  const id = c.req.param('id')
+  const { username, content } = await c.req.json()
+  const db = drizzle(c.env.DB)
+  const result = await db.update(posts).set({ content })
+    .where(and(eq(posts.id, Number(id)), eq(posts.username, username))).run()
+  
+  if (result.meta.changes === 0) return c.json({ message: 'Gagal edit' }, 403)
+  return c.json({ message: 'Berhasil diperbarui!' })
+})
+
+// --- HAPUS POSTINGAN (TAMBAHKAN INI) ---
+app.delete('/posts/:id', async (c) => {
+  const id = c.req.param('id')
+  const { username } = await c.req.json()
+  const db = drizzle(c.env.DB)
+  
+  const result = await db.delete(posts)
+    .where(and(eq(posts.id, Number(id)), eq(posts.username, username))).run()
+
+  if (result.meta.changes === 0) return c.json({ message: 'Gagal hapus' }, 403)
+  return c.json({ message: 'Terhapus!' })
 })
 
 export default app

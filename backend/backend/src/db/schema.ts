@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
 
 // Tabel User: Untuk menyimpan data akun
 export const users = sqliteTable('users', {
@@ -7,15 +8,16 @@ export const users = sqliteTable('users', {
   password: text('password').notNull(),
 });
 
-// Tabel Posts: Untuk menyimpan postingan sosmed
+// Tabel Posts: Gabungkan semua kolom yang kita butuhkan di sini
 export const posts = sqliteTable('posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  content: text('content').notNull(),
-  userId: integer('user_id').references(() => users.id),
-  createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
+  username: text('username').notNull(), // Menyimpan nama pengirim
+  content: text('content').notNull(),    // Isi postingan
+  userId: integer('user_id').references(() => users.id), // Relasi ke user
+  created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`), // Waktu untuk filter 24 jam
 });
 
-// Tabel Comments: Untuk komentar di setiap postingan
+// Tabel Comments
 export const comments = sqliteTable('comments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   text: text('text').notNull(),

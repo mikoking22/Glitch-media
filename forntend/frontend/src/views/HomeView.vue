@@ -22,10 +22,13 @@ const handleLogin = async () => {
     const data = await response.json()
 
     if (response.ok) {
-      alert('Selamat datang, ' + data.user.username + '!')
-      // 3. Pindah halaman diletakkan tepat di sini
-      router.push('/dashboard') 
-    } else {
+  alert('Selamat datang, ' + data.user.username + '!')
+  
+  // TAMBAHKAN BARIS INI: Simpan nama ke memori browser
+  localStorage.setItem('username', data.user.username) 
+  
+  router.push('/dashboard')
+} else {
       alert('Login Gagal: ' + data.message)
     }
   } catch (error) {

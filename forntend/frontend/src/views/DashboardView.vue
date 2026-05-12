@@ -1,48 +1,182 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <nav class="border-b py-2 px-8 flex gap-6 text-xs font-bold uppercase tracking-widest text-gray-600">
-      <span class="text-red-600 border-b-2 border-red-600">News</span>
-      <span>Sports</span>
-      <span>Life</span>
-      <span>Money</span>
-      <span>Tech</span>
-    </nav>
+  <div class="flex flex-col h-screen bg-gray-50 font-sans">
+    <header class="bg-white p-4 shadow-sm z-10 border-b-2 border-blue-600 flex justify-between items-center">
+      <h1 class="text-xl font-black italic tracking-tighter">GLITCH<span class="text-blue-600">.</span>FLASH</h1>
+      <div class="flex items-center gap-3">
+        <span class="text-[10px] font-bold text-blue-600 uppercase">@{{ userAktif }}</span>
+        <button @click="logout" class="text-[10px] font-bold text-red-500 uppercase tracking-widest border border-red-200 px-2 py-1 rounded-md hover:bg-red-50">Keluar</button>
+      </div>
+    </header>
 
-    <main class="p-4 max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <main class="flex-1 overflow-y-auto p-4 pb-32">
+      <div class="max-w-xl mx-auto space-y-4">
         
-        <div class="lg:col-span-3 space-y-6">
-          <div class="relative group cursor-pointer overflow-hidden rounded-lg">
-            <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c" class="w-full h-[500px] object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 to-transparent text-white">
-              <span class="bg-red-600 px-2 py-1 text-xs font-bold uppercase">Breaking News</span>
-              <h2 class="text-4xl font-black mt-2 leading-tight">Glitch Media: Transformasi Digital Mahasiswa IT di Tahun 2026</h2>
-              <p class="mt-2 text-gray-200">Bagaimana teknologi Cloudflare dan Vue Router mengubah cara kita membangun web...</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="i in 2" :key="i" class="border-b pb-4 flex gap-4">
-              <img src="https://images.unsplash.com/photo-1585829365234-78d9b6920784" class="w-24 h-24 object-cover rounded" />
-              <div>
-                <span class="text-blue-600 text-[10px] font-bold uppercase">Technology</span>
-                <h3 class="font-bold leading-snug hover:text-blue-600 cursor-pointer">Implementasi Database Real-time pada Cloudflare D1.</h3>
-              </div>
-            </div>
-          </div>
+        <div v-if="listPost.length === 0" class="text-center py-20 text-gray-300 italic">
+          Belum ada kabar kilat... Jadilah yang pertama!
         </div>
 
-        <div class="lg:col-span-1 border-l pl-6">
-          <h2 class="font-black border-b-4 border-black inline-block mb-4">TOP STORIES</h2>
-          <div class="space-y-6">
-            <div v-for="n in 5" :key="n" class="flex gap-3 items-start group cursor-pointer">
-              <span class="text-3xl font-black text-gray-200 group-hover:text-red-600 leading-none">{{ n }}</span>
-              <p class="text-sm font-bold leading-tight group-hover:underline">Update Terbaru: Backend Hono Berhasil Terintegrasi dengan Frontend Vue.</p>
+        <div v-for="p in listPost" :key="p.id" 
+          class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-blue-500 animate-in fade-in slide-in-from-bottom-2">
+          
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-black text-blue-600 text-xs italic">@{{ p.username }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] font-bold text-gray-400">{{ formatWaktu(p.created_at) }}</span>
+              
+              <button 
+                v-if="p.username === userAktif && isEditing !== p.id" 
+                @click="mulaiEdit(p)"
+                class="text-[9px] font-extrabold text-blue-500 hover:underline uppercase"
+              >
+                Edit
+              </button>
             </div>
           </div>
-        </div>
 
+          <div v-if="isEditing === p.id" class="space-y-2">
+            <textarea 
+              v-model="editContent" 
+              class="w-full p-2 text-sm bg-gray-50 border rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none"
+            ></textarea>
+            <div class="flex gap-2">
+              <button @click="simpanEdit(p.id)" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded-full font-bold">Simpan</button>
+              <button @click="isEditing = null" class="text-[10px] bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-bold">Batal</button>
+            </div>
+          </div>
+
+          <p v-else class="text-gray-800 text-md leading-relaxed">{{ p.content }}</p>
+        </div>
+        
       </div>
     </main>
+
+    <footer class="bg-white p-4 border-t shadow-[0_-5px_15px_rgba(0,0,0,0.05)] fixed bottom-0 w-full">
+      <div class="max-w-xl mx-auto flex items-end gap-2">
+        <textarea 
+          v-model="newPost" 
+          rows="1"
+          placeholder="Ketik kabar kilat..." 
+          class="flex-1 bg-gray-100 rounded-2xl p-3 border-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+          @keyup.enter.exact="kirimPost"
+        ></textarea>
+        <button 
+          @click="kirimPost" 
+          class="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition-transform active:scale-90"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </button>
+      </div>
+      <p class="text-[8px] text-center text-gray-400 mt-2 font-bold uppercase">Postingan akan terhapus otomatis dalam 24 jam</p>
+    </footer>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const newPost = ref('')
+const listPost = ref([])
+
+// 1. Ambil nama dari LocalStorage (yang disimpan di HomeView.vue tadi)
+const userAktif = localStorage.getItem('username') || 'Anonymous'
+
+const ambilBerita = async () => {
+  try {
+    const r = await fetch('http://127.0.0.1:8787/posts')
+    if (r.ok) {
+      listPost.value = await r.json()
+    }
+  } catch (e) { 
+    console.error("Gagal sinkronisasi data") 
+  }
+}
+
+const kirimPost = async () => {
+  if(!newPost.value.trim()) return
+  
+  try {
+    await fetch('http://127.0.0.1:8787/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // 2. Kirim username yang sedang aktif login ke database
+      body: JSON.stringify({ 
+        username: userAktif, 
+        content: newPost.value 
+      })
+    })
+    
+    newPost.value = ''
+    ambilBerita() 
+  } catch (err) {
+    console.error("Gagal kirim pesan")
+  }
+}
+
+const isEditing = ref(null); // Menyimpan ID post yang sedang diedit
+const editContent = ref(''); // Menyimpan teks sementara saat edit
+const mulaiEdit = (post) => {
+  isEditing.value = post.id;
+  editContent.value = post.content;
+};
+// Fungsi Hapus
+const hapusPost = async (id) => {
+  if (!confirm("Yakin ingin menghapus pesan ini?")) return;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8787/posts/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: userAktif })
+    });
+
+    if (res.ok) ambilBerita();
+    else alert("Gagal menghapus!");
+  } catch (e) {
+    console.error("Error hapus");
+  }
+};
+const simpanEdit = async (id) => {
+  if (!editContent.value.trim()) return;
+
+  try {
+   const res = await fetch(`http://127.0.0.1:8787/posts/${id}`, {
+  method: 'PUT', //
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    username: userAktif, 
+    content: editContent.value 
+  })
+});
+    if (res.ok) {
+      isEditing.value = null;
+      ambilBerita(); // Refresh data
+    } else {
+      alert("Kamu tidak punya akses mengedit ini!");
+    }
+  } catch (e) {
+    console.error("Gagal edit");
+  }
+};
+
+const formatWaktu = (tgl) => {
+  if (!tgl) return '--:--'
+  const d = new Date(tgl)
+  // Menyesuaikan tampilan jam lokal Indonesia
+  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
+const logout = () => {
+  localStorage.removeItem('username')
+  router.push('/')
+}
+
+onMounted(() => {
+  ambilBerita()
+  // Auto-refresh setiap 30 detik untuk melihat postingan orang lain secara realtime
+  setInterval(ambilBerita, 30000)
+})
+</script>
