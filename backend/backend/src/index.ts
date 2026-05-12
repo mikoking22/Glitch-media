@@ -10,9 +10,10 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
+// Tambahkan DELETE di allowMethods agar fitur hapus diizinkan browser
 app.use('*', cors({
   origin: 'http://localhost:5173',
-  allowMethods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'], // WAJIB ada DELETE & PUT
+  allowMethods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
 }))
 
 // --- LOGIN ---
@@ -25,11 +26,12 @@ app.post('/login', async (c) => {
   return c.json({ message: 'Username atau Password salah!' }, 401)
 })
 
-// --- AMBIL POSTINGAN ---
+// --- AMBIL POSTINGAN (DENGAN PERBAIKAN FILTER 24 JAM) ---
 app.get('/posts', async (c) => {
   const db = drizzle(c.env.DB)
+  // Gunakan filter SQLite yang benar untuk menghapus chat > 24 jam secara otomatis dari tampilan
   const results = await db.select().from(posts)
-    .where(sql`created_at >= datetime('now', '-7 hour', '-1 day')`)
+    .where(sql`created_at >= datetime('now', '-1 day')`)
     .orderBy(sql`created_at DESC`).all()
   return c.json(results)
 })
@@ -49,20 +51,17 @@ app.put('/posts/:id', async (c) => {
   const db = drizzle(c.env.DB)
   const result = await db.update(posts).set({ content })
     .where(and(eq(posts.id, Number(id)), eq(posts.username, username))).run()
-  
   if (result.meta.changes === 0) return c.json({ message: 'Gagal edit' }, 403)
   return c.json({ message: 'Berhasil diperbarui!' })
 })
 
-// --- HAPUS POSTINGAN (TAMBAHKAN INI) ---
+// --- HAPUS POSTINGAN ---
 app.delete('/posts/:id', async (c) => {
   const id = c.req.param('id')
   const { username } = await c.req.json()
   const db = drizzle(c.env.DB)
-  
   const result = await db.delete(posts)
     .where(and(eq(posts.id, Number(id)), eq(posts.username, username))).run()
-
   if (result.meta.changes === 0) return c.json({ message: 'Gagal hapus' }, 403)
   return c.json({ message: 'Terhapus!' })
 })
