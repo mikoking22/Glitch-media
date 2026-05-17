@@ -11,10 +11,11 @@ export const users = sqliteTable('users', {
 // Tabel Posts: Gabungkan semua kolom yang kita butuhkan di sini
 export const posts = sqliteTable('posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  username: text('username').notNull(), // Menyimpan nama pengirim
-  content: text('content').notNull(),    // Isi postingan
-  userId: integer('user_id').references(() => users.id), // Relasi ke user
-  created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`), // Waktu untuk filter 24 jam
+  username: text('username').notNull(),
+  content: text('content').notNull(),
+  // TAMBAHKAN BARIS INI:
+  parent_id: integer('parent_id'), 
+  created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Tabel Comments

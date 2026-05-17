@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// Pastikan nama file di bawah ini sesuai dengan yang ada di folder views
 import HomeView from '../views/HomeView.vue'
 import RegisterView from '../views/RegisterView.vue' 
 import DashboardView from '../views/DashboardView.vue'
+import ReplyView from '../views/Replyview.vue' 
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,14 +13,19 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/register', // Alamat yang dicari browser
+      path: '/register',
       name: 'register',
-      component: RegisterView // Komponen yang akan ditampilkan
+      component: RegisterView
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView
+    },
+    {
+      path: '/reply/:id',    // ← tambahkan blok ini
+      name: 'reply',
+      component: ReplyView
     }
   ]
 })

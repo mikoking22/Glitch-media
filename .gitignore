@@ -1,0 +1,14 @@
+# Abaikan semua node_modules di folder mana pun
+**/node_modules/
+node_modules/
+
+# Abaikan file environment/rahasia
+.env
+.env.*
+
+# Abaikan folder log & build milik wrangler/drizzle
+.wrangler/
+.drizzle/
+dist/
+.nuxt/
+.output/
