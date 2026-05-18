@@ -18,7 +18,8 @@ const password = ref('')  // Dua arah dengan input password di template
 // Mengirim POST /login ke backend dengan { username, password }
 const handleLogin = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:8787/login', {
+    // GANTI URL LOCALHOST MENJADI URL BACKEND WORKERS KAMU YANG SUDAH ONLINE!
+    const response = await fetch('https://backend.misbachussurur8.workers.dev/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,20 +33,15 @@ const handleLogin = async () => {
     const data = await response.json()
 
     if (response.ok) {
-      // Login berhasil:
-      // 1. Simpan username ke localStorage agar bisa diakses di halaman lain (DashboardView, ReplyView)
-      // 2. Navigasi ke halaman utama /dashboard
       alert('Selamat datang, ' + data.user.username + '!')
       localStorage.setItem('username', data.user.username)
       router.push('/dashboard')
     } else {
-      // Backend mengembalikan 401: username atau password salah
       alert('Login Gagal: ' + data.message)
     }
   } catch (error) {
-    // Gagal connect ke server (backend belum nyala / jaringan bermasalah)
     console.error('Error:', error)
-    alert('Waduh, servernya belum nyala nih!')
+    alert('Waduh, gagal terhubung ke server backend Cloudflare!');
   }
 }
 </script>
