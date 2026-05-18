@@ -99,9 +99,10 @@ const newPost = ref('')
 const listPost = ref([])
 const userAktif = localStorage.getItem('username') || 'Anonymous'
 
+// 1. FUNGSI AMBIL DATA (GET) - SUDAH FIX WORKERS
 const ambilBerita = async () => {
   try {
-    const r = await fetch('http://127.0.0.1:8787/posts')
+    const r = await fetch('https://backend.misbachussurur8.workers.dev/posts')
     if (r.ok) {
       listPost.value = await r.json()
     }
@@ -110,10 +111,11 @@ const ambilBerita = async () => {
   }
 }
 
+// 2. FUNGSI KIRIM DATA (POST) - SUDAH FIX WORKERS
 const kirimPost = async () => {
   if(!newPost.value.trim()) return
   try {
-    await fetch('http://127.0.0.1:8787/posts', {
+    await fetch('https://backend.misbachussurur8.workers.dev/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -135,10 +137,11 @@ const mulaiEdit = (post) => {
   editContent.value = post.content;
 };
 
+// 3. FUNGSI HAPUS DATA (DELETE) - SUDAH FIX WORKERS
 const hapusPost = async (id) => {
   if (!confirm("Yakin ingin menghapus pesan ini?")) return;
   try {
-    const res = await fetch(`http://127.0.0.1:8787/posts/${id}`, {
+    const res = await fetch(`https://backend.misbachussurur8.workers.dev/posts/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: userAktif })
@@ -150,10 +153,11 @@ const hapusPost = async (id) => {
   }
 };
 
+// 4. FUNGSI SIMPAN EDIT (PUT) - SUDAH FIX WORKERS
 const simpanEdit = async (id) => {
   if (!editContent.value.trim()) return;
   try {
-    const res = await fetch(`http://127.0.0.1:8787/posts/${id}`, {
+    const res = await fetch(`https://backend.misbachussurur8.workers.dev/posts/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 

@@ -16,7 +16,8 @@ const handleRegister = async () => {
 
   isLoading.value = true
   try {
-    const response = await fetch('http://127.0.0.1:8787/register', {
+    // URL SUDAH DIARAHKAN KE CLOUDFLARE WORKERS PRODUCTION
+    const response = await fetch('https://backend.misbachussurur8.workers.dev/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -34,7 +35,7 @@ const handleRegister = async () => {
       alert('Gagal: ' + data.message)
     }
   } catch (error) {
-    alert('Waduh, ada masalah koneksi ke server.')
+    alert('Waduh, ada masalah koneksi ke server Cloudflare Workers.')
   } finally {
     isLoading.value = false
   }

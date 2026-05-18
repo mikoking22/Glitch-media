@@ -79,21 +79,24 @@ const postId = route.params.id
 
 const ambilDataHalaman = async () => {
   try {
-    const resPost = await fetch(`http://127.0.0.1:8787/posts/${postId}`)
+    // URL SUDAH DIARAHKAN KE CLOUDFLARE WORKERS PRODUCTION
+    const resPost = await fetch(`https://backend.misbachussurur8.workers.dev/posts/${postId}`)
     if (resPost.ok) postUtama.value = await resPost.json()
 
-    const resReplies = await fetch(`http://127.0.0.1:8787/posts/${postId}/replies`)
+    // URL SUDAH DIARAHKAN KE CLOUDFLARE WORKERS PRODUCTION
+    const resReplies = await fetch(`https://backend.misbachussurur8.workers.dev/posts/${postId}/replies`)
     if (resReplies.ok) listReplies.value = await resReplies.json()
   } catch (e) {
     console.error("Gagal memuat data balasan:", e)
-    alert('Gagal memuat halaman balasan. Cek koneksi backend.')  // ← tambah ini
+    alert('Gagal memuat halaman balasan. Cek koneksi backend Cloudflare.')
   }
 }
 
 const kirimBalasan = async () => {
   if (!newReply.value.trim()) return
   try {
-    const res = await fetch('http://127.0.0.1:8787/posts', {
+    // URL SUDAH DIARAHKAN KE CLOUDFLARE WORKERS PRODUCTION
+    const res = await fetch('https://backend.misbachussurur8.workers.dev/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -104,13 +107,13 @@ const kirimBalasan = async () => {
     })
     if (res.ok) {
       newReply.value = ''
-      await ambilDataHalaman() // ← tambah await
+      await ambilDataHalaman()
     } else {
       alert('Gagal mengirim balasan!')
     }
   } catch (err) {
     console.error("Gagal membalas pesan")
-    alert('Server tidak bisa dijangkau!')  // ← biar ketahuan kalau gagal
+    alert('Server Cloudflare tidak bisa dijangkau!')
   }
 }
 
