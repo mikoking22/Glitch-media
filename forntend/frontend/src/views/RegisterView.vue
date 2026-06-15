@@ -16,7 +16,6 @@ const handleRegister = async () => {
 
   isLoading.value = true
   try {
-    // URL SUDAH DIARAHKAN KE CLOUDFLARE WORKERS PRODUCTION
     const response = await fetch('https://backend.misbachussurur8.workers.dev/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -30,7 +29,7 @@ const handleRegister = async () => {
 
     if (response.ok) {
       alert('Registrasi Berhasil! Silakan masuk.')
-      router.push('/') // Pindah ke halaman login setelah sukses
+      router.push('/') 
     } else {
       alert('Gagal: ' + data.message)
     }
